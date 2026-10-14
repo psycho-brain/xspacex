@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>クジ引きアプリ</title>
+    <style id="custom-theme">
+        :root {
+            --bg-color: #f7f9fa;
+            --bg-image: url('');
+            --title-color: #333333;
+            --text-color: #4a4a4a;
+            --btn-color: #ff4757;
+        }
+    </style>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--bg-color);
+            background-image: var(--bg-image);
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+        header {
+            position: relative;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        h1 {
+            color: var(--title-color);
+            margin-bottom: 10px;
+        }
+        .admin-trigger-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #747d8c;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .btn-draw {
+            background-color: var(--btn-color);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            font-size: 22px;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-draw:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        .btn-draw:disabled {
+            background-color: #ced6e0 !important;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .nav-buttons {
+            margin-top: 30px;
+        }
+        .btn-secondary {
+            background: #2ed573;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            overflow-y: auto;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 550px;
+            color: #2f3542;
+            text-align: left;
+            max-height: 85vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        .close-btn {
+            position: absolute;
+            top: 15px; right: 15px;
+            font-size: 24px; cursor: pointer; color: #a4b0be;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ced6e0;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .item-list {
+            border-top: 1px solid #ced6e0;
+            margin-top: 15px;
+            padding-top: 15px;
+        }
+        .item-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f2f6;
+        }
+        .item-row img {
+            width: 40px; height: 40px; object-fit: cover; margin-right: 10px; border-radius: 4px;
+        }
+        .result-card img {
+            max-width: 100%; max-height: 250px; border-radius: 8px; margin: 15px 0; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .history-list {
+            list-style: none; padding: 0;
+        }
+        .history-list li {
+            padding: 10px; border-bottom: 1px solid #f1f2f6; display: flex; justify-content: space-between; align-items: center;
+        }
+        .admin-header-flex {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <button class="admin-trigger-btn" onclick="openAdminAuth()">管理画面</button>
+
+    <header>
+        <h1 id="display-title">お楽しみクジ引き</h1>
+        <p id="display-desc">本日のクジ引きに挑戦しよう！</p>
+    </header>
+
+    <div class="container">
+        <div style="margin: 40px 0;">
+            <button id="draw-button" class="btn-draw" onclick="drawLottery()">クジを引く</button>
+        </div>
+        <p id="remaining-count">本日の残り回数: -- 回</p>
+
+        <div class="nav-buttons">
+            <button class="btn-secondary" onclick="openHistoryModal()">当選履歴を見る</button>
+        </div>
+    </div>
+
+    <!-- 当選ポップアップ -->
+    <div id="result-modal" class="modal">
+        <div class="modal-content" style="text-align: center;">
+            <span class="close-btn" onclick="closeModal('result-modal')">&times;</span>
+            <h2 id="result-phrase" style="color: #ff4757;">おめでとうございます！</h2>
+            <div class="result-card">
+                <h3 id="result-item-name">アイテム名</h3>
+                <img id="result-item-img" src="" alt="当選アイテム画像" style="display:none;">
+            </div>
+            <p style="font-size:12px; color:#747d8c; margin-top:15px;">※画像は長押しまたは右クリックで保存できます</p>
+        </div>
+    </div>
+
+    <!-- 当選履歴モーダル -->
+    <div id="history-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('history-modal')">&times;</span>
+            <h2>当選履歴</h2>
+            <ul id="history-container" class="history-list"></ul>
+        </div>
+    </div>
+
+    <!-- 管理画面認証モーダル -->
+    <div id="admin-auth-modal" class="modal">
+        <div class="modal-content" style="max-width: 350px;">
+            <span class="close-btn" onclick="closeModal('admin-auth-modal')">&times;</span>
+            <h3>管理者認証</h3>
+            <div class="form-group">
+                <label>パスワード入力</label>
+                <input type="password" id="admin-password-input">
+            </div>
+            <button class="btn-secondary" style="width:100%; margin:0;" onclick="submitAdminAuth()">ログイン</button>
+        </div>
+    </div>
+
+    <!-- 管理画面モーダル -->
+    <div id="admin-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="logoutAdmin()">&times;</span>
+            <div class="admin-header-flex">
+                <h2>管理画面 (ログイン中)</h2>
+                <button class="btn-secondary" style="background:#57606f;" onclick="refreshAdminView()">更新</button>
+            </div>
+
+            <!-- アプリ設定 -->
+            <fieldset style="border: 1px solid #ced6e0; border-radius: 6px; padding: 15px; margin-bottom: 20px;">
+                <legend style="font-weight:bold; padding:0 5px;">基本設定・デザイン</legend>
+                <div class="form-group">
+                    <label>タイトル</label>
+                    <input type="text" id="cfg-title" onchange="updateConfig()">
+                </div>
+                <div class="form-group">
+                    <label>説明文</label>
+                    <textarea id="cfg-desc" rows="2" onchange="updateConfig()"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>当選時のセリフ（共通）</label>
+                    <input type="text" id="cfg-phrase" onchange="updateConfig()">
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="form-group">
+                        <label>背景色</label>
+                        <input type="color" id="cfg-bg-color" onchange="updateConfig()">
+                    </div>
+                    <div class="form-group">
+                        <label>背景画像URL</label>
+                        <input type="text" id="cfg-bg-image" onchange="updateConfig()" placeholder="https://example.com/image.jpg">
+                    </div>
+                    <div class="form-group">
+                        <label>タイトル文字色</label>
+                        <input type="color" id="cfg-title-color" onchange="updateConfig()">
+                    </div>
+                    <div class="form-group">
+                        <label>本文文字色</label>
+                        <input type="color" id="cfg-text-color" onchange="updateConfig()">
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>クジ引きボタン色</label>
+                        <input type="color" id="cfg-btn-color" onchange="updateConfig()">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>カスタムCSS</label>
+                    <textarea id="cfg-css" rows="3" onchange="updateConfig()" placeholder="body { filter: grayscale(10%); }"></textarea>
+                </div>
+            </fieldset>
+
+            <!-- 回数制限設定 -->
+            <fieldset style="border: 1px solid #ced6e0; border-radius: 6px; padding: 15px; margin-bottom: 20px;">
+                <legend style="font-weight:bold; padding:0 5px;">プレイ制限設定</legend>
+                <div class="form-group">
+                    <label>1日にできる回数</label>
+                    <input type="number" id="cfg-max-draws" min="1" onchange="updateConfig()">
+                </div>
+                <button class="btn-secondary" style="background:#ffa502; width:100%; margin:0;" onclick="resetUserDraws()">ユーザーの残り回数を今すぐリセット</button>
+            </fieldset>
+
+            <!-- アイテム追加 -->
+            <fieldset style="border: 1px solid #ced6e0; border-radius: 6px; padding: 15px; margin-bottom: 20px;">
+                <legend style="font-weight:bold; padding:0 5px;">アイテムの追加</legend>
+                <div class="form-group">
+                    <label>アイテム名称</label>
+                    <input type="text" id="new-item-name">
+                </div>
+                <div class="form-group">
+                    <label>個数 (1〜100)</label>
+                    <input type="number" id="new-item-stock" min="1" max="100" value="1">
+                </div>
+                <div class="form-group">
+                    <label>画像アップロード (Base64形式で保存されます)</label>
+                    <input type="file" id="new-item-file" accept="image/*">
+                </div>
+                <button class="btn-secondary" style="width:100%; margin:0;" onclick="addNewItem()">アイテムを追加する</button>
+            </fieldset>
+
+            <!-- アイテム一覧管理 -->
+            <h3>登録アイテム一覧</h3>
+            <div id="admin-item-list" class="item-list"></div>
+
+            <!-- 当選履歴（管理用・復元可能） -->
+            <h3 style="margin-top:25px;">当選履歴一覧（履歴からアイテムを再追加可能）</h3>
+            <div id="admin-history-list" class="item-list"></div>
+        </div>
+    </div>
+
+    <style id="custom-css-runtime"></style>
+
+    <script>
+        // ハッシュ化されたパスワード（days）。ソースを見ても生パスワードは分からない。
+        const ENCRYPTED_HASH = "61633519"; 
+        function simpleHash(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = (hash << 5) - hash + str.charCodeAt(i);
+                hash |= 0;
+            }
+            return hash.toString();
+        }
+
+        // 初期データ（コードから直接複数追加可能）
+        const INITIAL_ITEMS = [
+            { id: "init_1", name: "特賞：豪華お肉セット", stock: 5, image: "" },
+            { id: "init_2", name: "一等：特製ぬいぐるみ", stock: 10, image: "" },
+            { id: "init_3", name: "二等：オリジナル缶バッジ", stock: 30, image: "" },
+            { id: "init_4", name: "参加賞：特製ステッカー", stock: 100, image: "" }
+        ];
+
+        // 状態保持
+        let state = {
+            config: {
+                title: "お楽しみクジ引き",
+                desc: "本日のクジ引きに挑戦しよう！",
+                phrase: "おめでとうございます！",
+                bgColor: "#f7f9fa",
+                bgImage: "",
+                titleColor: "#333333",
+                textColor: "#4a4a4a",
+                btnColor: "#ff4757",
+                customCss: "",
+                maxDraws: 3
+            },
+            items: [],
+            history: [],
+            userDrawCount: 0,
+            lastDrawDate: ""
+        };
+
+        // ローカルストレージから読み込み
+        function loadStorage() {
+            const saved = localStorage.getItem('kuji_app_state');
+            if (saved) {
+                state = JSON.parse(saved);
+            } else {
+                state.items = [...INITIAL_ITEMS];
+                saveStorage();
+            }
+            checkMidnightReset();
+        }
+
+        function saveStorage() {
+            localStorage.setItem('kuji_app_state', JSON.stringify(state));
+        }
+
+        // 深夜0時のリセット判定
+        function checkMidnightReset() {
+            const todayStr = new Date().toLocaleDateString();
+            if (state.lastDrawDate !== todayStr) {
+                state.userDrawCount = 0;
+                state.lastDrawDate = todayStr;
+                // アイテムの在庫数も深夜0時に自動更新（初期設定値にリセットされるか、運用に合わせて保持）
+                saveStorage();
+            }
+        }
+
+        // デザイン・ビューの反映
+        function applyStyles() {
+            const root = document.documentElement.style;
+            root.setProperty('--bg-color', state.config.bgColor);
+            root.setProperty('--bg-image', state.config.bgImage ? `url(${state.config.bgImage})` : 'none');
+            root.setProperty('--title-color', state.config.titleColor);
+            root.setProperty('--text-color', state.config.textColor);
+            root.setProperty('--btn-color', state.config.btnColor);
+
+            document.getElementById('display-title').innerText = state.config.title;
+            document.getElementById('display-desc').innerText = state.config.desc;
+            document.getElementById('custom-css-runtime').innerHTML = state.config.customCss;
+
+            const remaining = Math.max(0, state.config.maxDraws - state.userDrawCount);
+            document.getElementById('remaining-count').innerText = `本日の残り回数: ${remaining} 回`;
+            
+            if (remaining <= 0) {
+                document.getElementById('draw-button').disabled = true;
+                document.getElementById('draw-button').innerText = "本日は終了しました";
+            } else {
+                document.getElementById('draw-button').disabled = false;
+                document.getElementById('draw-button').innerText = "クジを引く";
+            }
+        }
+
+        // クジ引き処理
+        function drawLottery() {
+            checkMidnightReset();
+            if (state.userDrawCount >= state.config.maxDraws) {
+                alert("本日のクジ引き上限に達しました。");
+                return;
+            }
+
+            // 在庫のあるアイテムをプールに展開
+            let pool = [];
+            state.items.forEach(item => {
+                for (let i = 0; i < item.stock; i++) {
+                    pool.push(item);
+                }
+            });
+
+            if (pool.length === 0) {
+                alert("現在、当たるアイテムがありません。管理者が追加するまでお待ちください。");
+                return;
+            }
+
+            // 抽選
+            const randomIndex = Math.floor(Math.random() * pool.length);
+            const winnerItem = pool[randomIndex];
+
+            // 在庫を1減らす
+            const realItem = state.items.find(i => i.id === winnerItem.id);
+            if (realItem) {
+                realItem.stock--;
+                if (realItem.stock <= 0) {
+                    state.items = state.items.filter(i => i.id !== winnerItem.id);
+                }
+            }
+
+            // ユーザーカウント進捗
+            state.userDrawCount++;
+            
+            // 履歴に追加
+            const log = {
+                timestamp: new Date().toLocaleString(),
+                name: winnerItem.name,
+                image: winnerItem.image
+            };
+            state.history.unshift(log);
+            saveStorage();
+            applyStyles();
+
+            // 当選モーダル表示
+            document.getElementById('result-phrase').innerText = state.config.phrase;
+            document.getElementById('result-item-name').innerText = winnerItem.name;
+            const imgEl = document.getElementById('result-item-img');
+            if (winnerItem.image) {
+                imgEl.src = winnerItem.image;
+                imgEl.style.display = 'inline-block';
+            } else {
+                imgEl.style.display = 'none';
+            }
+            openModal('result-card-display'); // 実際は下の関数呼び出し
+            document.getElementById('result-modal').style.display = 'flex';
+        }
+
+        // モーダル操作
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+        function openHistoryModal() {
+            const container = document.getElementById('history-container');
+            container.innerHTML = '';
+            if (state.history.length === 0) {
+                container.innerHTML = '<li>まだ当選履歴がありません。</li>';
+            } else {
+                state.history.forEach(h => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<div><strong>${h.name}</strong><br><small style="color:#747d8c">${h.timestamp}</small></div>`;
+                    if (h.image) {
+                        const img = document.createElement('img');
+                        img.src = h.image;
+                        img.style.width = '40px'; img.style.height = '40px'; img.style.objectFit = 'cover'; img.style.borderRadius = '4px';
+                        li.appendChild(img);
+                    }
+                    container.appendChild(li);
+                });
+            }
+            document.getElementById('history-modal').style.display = 'flex';
+        }
+
+        // 管理画面の認証
+        function openAdminAuth() {
+            if (sessionStorage.getItem('admin_logged_in') === 'true') {
+                showAdminModal();
+            } else {
+                document.getElementById('admin-password-input').value = '';
+                document.getElementById('admin-auth-modal').style.display = 'flex';
+            }
+        }
+        function submitAdminAuth() {
+            const input = document.getElementById('admin-password-input').value;
+            if (simpleHash(input) === ENCRYPTED_HASH) {
+                sessionStorage.setItem('admin_logged_in', 'true');
+                closeModal('admin-auth-modal');
+                showAdminModal();
+            } else {
+                alert('パスワードが違います。');
+            }
+        }
+        function logoutAdmin() {
+            sessionStorage.removeItem('admin_logged_in');
+            closeModal('admin-modal');
+        }
+
+        // 管理画面の表示と更新
+        function showAdminModal() {
+            document.getElementById('admin-modal').style.display = 'flex';
+            
+            // フォーム値の同期
+            document.getElementById('cfg-title').value = state.config.title;
+            document.getElementById('cfg-desc').value = state.config.desc;
+            document.getElementById('cfg-phrase').value = state.config.phrase;
+            document.getElementById('cfg-bg-color').value = state.config.bgColor;
+            document.getElementById('cfg-bg-image').value = state.config.bgImage;
+            document.getElementById('cfg-title-color').value = state.config.titleColor;
+            document.getElementById('cfg-text-color').value = state.config.textColor;
+            document.getElementById('cfg-btn-color').value = state.config.btnColor;
+            document.getElementById('cfg-css').value = state.config.customCss;
+            document.getElementById('cfg-max-draws').value = state.config.maxDraws;
+
+            renderAdminItems();
+        }
+
+        function refreshAdminView() {
+            loadStorage();
+            applyStyles();
+            showAdminModal();
+        }
+
+        function updateConfig() {
+            state.config.title = document.getElementById('cfg-title').value;
+            state.config.desc = document.getElementById('cfg-desc').value;
+            state.config.phrase = document.getElementById('cfg-phrase').value;
+            state.config.bgColor = document.getElementById('cfg-bg-color').value;
+            state.config.bgImage = document.getElementById('cfg-bg-image').value;
+            state.config.titleColor = document.getElementById('cfg-title-color').value;
+            state.config.textColor = document.getElementById('cfg-text-color').value;
+            state.config.btnColor = document.getElementById('cfg-btn-color').value;
+            state.config.customCss = document.getElementById('cfg-css').value;
+            state.config.maxDraws = parseInt(document.getElementById('cfg-max-draws').value) || 3;
+            
+            saveStorage();
+            applyStyles();
+        }
+
+        function resetUserDraws() {
+            state.userDrawCount = 0;
+            saveStorage();
+            applyStyles();
+            alert("ユーザーの残り回数をリセットしました。");
+        }
+
+        function renderAdminItems() {
+            const listContainer = document.getElementById('admin-item-list');
+            listContainer.innerHTML = '';
+            
+            state.items.forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'item-row';
+                
+                const infoDiv = document.createElement('div');
+                infoDiv.style.display = 'flex'; infoDiv.style.alignItems = 'center';
+                if (item.image) {
+                    const img = document.createElement('img');
+                    img.src = item.image;
+                    infoDiv.appendChild(img);
+                }
+                
+                const textSpan = document.createElement('span');
+                textSpan.innerHTML = `<input type="text" value="${item.name}" onchange="editItemName('${item.id}', this.value)" style="width:180px; display:inline-block; margin-right:10px;"> 在庫: <input type="number" value="${item.stock}" min="1" max="100" onchange="editItemStock('${item.id}', this.value)" style="width:50px; display:inline-block;">`;
+                infoDiv.appendChild(textSpan);
+
+                const delBtn = document.createElement('button');
+                delBtn.innerText = '削除';
+                delBtn.className = 'btn-secondary';
+                delBtn.style.background = '#ff4757';
+                delBtn.onclick = () => deleteItem(item.id);
+
+                row.appendChild(infoDiv);
+                row.appendChild(delBtn);
+                listContainer.appendChild(row);
+            });
+
+            // 履歴から追加セクションの描画
+            const histContainer = document.getElementById('admin-history-list');
+            histContainer.innerHTML = '';
+            if (state.history.length === 0) {
+                histContainer.innerHTML = '<p style="font-size:12px; color:#747d8c;">履歴がありません</p>';
+            } else {
+                // 重複排除して履歴アイテムをリストアップ
+                const uniqueHistory = [];
+                const map = new Map();
+                for (const item of state.history) {
+                    if(!map.has(item.name)){
+                        map.set(item.name, true);
+                        uniqueHistory.push(item);
+                    }
+                }
+
+                uniqueHistory.forEach(h => {
+                    const row = document.createElement('div');
+                    row.className = 'item-row';
+                    row.innerHTML = `<div><strong>${h.name}</strong></div>`;
+                    const addBtn = document.createElement('button');
+                    addBtn.innerText = 'このアイテムを再追加(1個)';
+                    addBtn.className = 'btn-secondary';
+                    addBtn.onclick = () => {
+                        const id = 'hist_' + Date.now();
+                        state.items.push({ id, name: h.name, stock: 1, image: h.image || "" });
+                        saveStorage();
+                        renderAdminItems();
+                    };
+                    row.appendChild(addBtn);
+                    histContainer.appendChild(row);
+                });
+            }
+        }
+
+        function addNewItem() {
+            const name = document.getElementById('new-item-name').value;
+            const stock = parseInt(document.getElementById('new-item-stock').value) || 1;
+            const fileInput = document.getElementById('new-item-file');
+
+            if (!name) {
+                alert('アイテム名を入力してください。');
+                return;
+            }
+
+            const id = 'item_' + Date.now();
+
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    state.items.push({ id, name, stock, image: e.target.result });
+                    saveStorage();
+                    renderAdminItems();
+                    document.getElementById('new-item-name').value = '';
+                    fileInput.value = '';
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                state.items.push({ id, name, stock, image: "" });
+                saveStorage();
+                renderAdminItems();
+                document.getElementById('new-item-name').value = '';
+            }
+        }
+
+        function editItemName(id, newName) {
+            const item = state.items.find(i => i.id === id);
+            if (item) {
+                item.name = newName;
+                saveStorage();
+            }
+        }
+
+        function editItemStock(id, newStock) {
+            const item = state.items.find(i => i.id === id);
+            if (item) {
+                item.stock = Math.min(100, Math.max(1, parseInt(newStock) || 1));
+                saveStorage();
+            }
+        }
+
+        function deleteItem(id) {
+            state.items = state.items.filter(i => i.id !== id);
+            saveStorage();
+            renderAdminItems();
+        }
+
+        // 初期起動
+        window.onload = function() {
+            loadStorage();
+            applyStyles();
+            
+            // ページ更新してもセッションが残っていれば自動で管理画面を開き直す（要件対応）
+            if (sessionStorage.getItem('admin_logged_in') === 'true') {
+                showAdminModal();
+            }
+        };
+    </script>
+</body>
+</html>
