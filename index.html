@@ -4,116 +4,211 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>クジ引きアプリ</title>
-    <style id="custom-theme">
+    <style id="custom-theme-styles">
+        /* デフォルトデザイン */
         :root {
-            --bg-color: #f7f9fa;
-            --bg-image: url('');
-            --title-color: #333333;
-            --text-color: #4a4a4a;
+            --bg-color: #f4f7f6;
+            --text-color: #333333;
             --btn-color: #ff4757;
+            --bg-image: none;
         }
-    </style>
-    <style>
         body {
-            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
             background-color: var(--bg-color);
             background-image: var(--bg-image);
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
             color: var(--text-color);
+            font-family: 'Helvetica Neue', Arial, sans-serif;
             margin: 0;
             padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             min-height: 100vh;
         }
-        header {
-            position: relative;
-            padding: 40px 20px;
-            text-align: center;
-        }
-        h1 {
-            color: var(--title-color);
-            margin-bottom: 10px;
-        }
-        .admin-trigger-btn {
+    </style>
+    <style id="admin-custom-css">
+        /* 管理画面から追加できるカスタムCSS用領域 */
+    </style>
+    <style>
+        /* アプリ共通基本スタイル */
+        .header-actions {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            background: #747d8c;
-            color: white;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+        .nav-btn {
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
             border: none;
             padding: 8px 15px;
-            border-radius: 4px;
+            border-radius: 20px;
             cursor: pointer;
             font-size: 14px;
+            transition: background 0.2s;
+        }
+        .nav-btn:hover {
+            background: rgba(0, 0, 0, 0.8);
         }
         .container {
             max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
+            width: 90%;
+            margin: 80px auto 40px auto;
             text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
-        .btn-draw {
+        h1#app-title {
+            margin-top: 0;
+            font-size: 28px;
+        }
+        p#app-desc {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 40px;
+        }
+        /* クジ引きボタン（CSS制御のシンプルデザイン） */
+        .draw-btn-container {
+            margin: 30px 0;
+        }
+        .kuji-draw-button {
             background-color: var(--btn-color);
             color: white;
             border: none;
-            padding: 18px 40px;
+            padding: 20px 50px;
             font-size: 22px;
             font-weight: bold;
-            border-radius: 30px;
+            border-radius: 50px;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: transform 0.1s, box-shadow 0.2s;
+            width: 80%;
+            max-width: 300px;
         }
-        .btn-draw:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        .kuji-draw-button:active {
+            transform: scale(0.97);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
-        .btn-draw:disabled {
-            background-color: #ced6e0 !important;
+        .kuji-draw-button:disabled {
+            background-color: #cccccc !important;
             cursor: not-allowed;
-            transform: none;
             box-shadow: none;
+            transform: none;
         }
-        .nav-buttons {
+        .history-trigger-container {
             margin-top: 30px;
         }
-        .btn-secondary {
-            background: #2ed573;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
+        .secondary-btn {
+            background: none;
+            border: 2px solid var(--btn-color);
+            color: var(--btn-color);
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-weight: bold;
             cursor: pointer;
-            margin: 5px;
-            font-size: 14px;
+            transition: all 0.2s;
         }
+        .secondary-btn:hover {
+            background: var(--btn-color);
+            color: white;
+        }
+        /* モーダル共通スタイル */
         .modal {
             display: none;
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: rgba(0,0,0,0.6);
             z-index: 1000;
             justify-content: center;
             align-items: center;
             overflow-y: auto;
         }
+        .modal.active {
+            display: flex;
+        }
         .modal-content {
             background: white;
+            color: #333;
             padding: 30px;
-            border-radius: 8px;
+            border-radius: 12px;
             width: 90%;
             max-width: 550px;
-            color: #2f3542;
-            text-align: left;
             max-height: 85vh;
             overflow-y: auto;
             position: relative;
+            text-align: left;
         }
-        .close-btn {
+        .modal-close {
             position: absolute;
-            top: 15px; right: 15px;
-            font-size: 24px; cursor: pointer; color: #a4b0be;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #888;
+        }
+        /* 当選画面スタイル */
+        .win-view {
+            text-align: center;
+        }
+        .win-comment {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ff4757;
+            margin-bottom: 20px;
+        }
+        .win-name {
+            font-size: 24px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .win-img-box img {
+            max-width: 100%;
+            max-height: 250px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+        .save-notice {
+            font-size: 12px;
+            color: #666;
+            margin-top: 10px;
+        }
+        /* 管理画面スタイル */
+        .admin-login-box {
+            text-align: center;
+            padding: 20px 0;
+        }
+        .admin-tabs {
+            display: flex;
+            border-bottom: 2px solid #ddd;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            background: #f1f1f1;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .tab-btn.active {
+            background: white;
+            border-bottom: 2px solid #333;
+            margin-bottom: -2px;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
         }
         .form-group {
             margin-bottom: 15px;
@@ -122,568 +217,653 @@
             display: block;
             font-weight: bold;
             margin-bottom: 5px;
+            font-size: 14px;
         }
-        .form-group input, .form-group textarea, .form-group select {
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group textarea {
             width: 100%;
             padding: 8px;
-            border: 1px solid #ced6e0;
-            border-radius: 4px;
             box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
         }
-        .item-list {
-            border-top: 1px solid #ced6e0;
-            margin-top: 15px;
+        .item-list-admin {
+            margin-top: 20px;
+            border-top: 1px solid #eee;
             padding-top: 15px;
         }
         .item-row {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #f1f2f6;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
         }
-        .item-row img {
-            width: 40px; height: 40px; object-fit: cover; margin-right: 10px; border-radius: 4px;
+        .item-thumb {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 4px;
+            background: #eee;
         }
-        .result-card img {
-            max-width: 100%; max-height: 250px; border-radius: 8px; margin: 15px 0; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: 12px;
+            cursor: pointer;
         }
+        .btn-danger {
+            background: #ff4757;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        .btn-primary {
+            background: #2ed573;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+        /* 履歴一覧スタイル */
         .history-list {
-            list-style: none; padding: 0;
+            list-style: none;
+            padding: 0;
+            margin: 0;
         }
-        .history-list li {
-            padding: 10px; border-bottom: 1px solid #f1f2f6; display: flex; justify-content: space-between; align-items: center;
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
         }
-        .admin-header-flex {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+        .history-thumb {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 6px;
+            background: #f0f0f0;
+        }
+        .history-info {
+            flex: 1;
+        }
+        .history-name {
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .history-time {
+            font-size: 12px;
+            color: #888;
+            margin-top: 30px;
         }
     </style>
 </head>
 <body>
 
-    <button class="admin-trigger-btn" onclick="openAdminAuth()">管理画面</button>
+    <!-- 右上アクションボタン群 -->
+    <div class="header-actions">
+        <button class="nav-btn" id="refresh-view-btn" onclick="location.reload();">更新（同期）</button>
+        <button class="nav-btn" onclick="openAdminModal()">管理画面</button>
+    </div>
 
-    <header>
-        <h1 id="display-title">お楽しみクジ引き</h1>
-        <p id="display-desc">本日のクジ引きに挑戦しよう！</p>
-    </header>
-
+    <!-- メインコンテンツ -->
     <div class="container">
-        <div style="margin: 40px 0;">
-            <button id="draw-button" class="btn-draw" onclick="drawLottery()">クジを引く</button>
-        </div>
-        <p id="remaining-count">本日の残り回数: -- 回</p>
+        <h1 id="app-title">豪華クジ引き大会</h1>
+        <p id="app-desc">ボタンを押してクジを引こう！何が当たるかはお楽しみ。1日3回までチャレンジできます。</p>
 
-        <div class="nav-buttons">
-            <button class="btn-secondary" onclick="openHistoryModal()">当選履歴を見る</button>
+        <div class="draw-btn-container">
+            <button class="kuji-draw-button" id="draw-button" onclick="executeDraw()">クジを引く</button>
+            <div id="draw-count-status" style="margin-top: 10px; font-size: 14px; color: #666;"></div>
+        </div>
+
+        <div class="history-trigger-container">
+            <button class="secondary-btn" onclick="openHistoryModal()">当選履歴を見る</button>
         </div>
     </div>
 
-    <!-- 当選ポップアップ -->
-    <div id="result-modal" class="modal">
+    <!-- 1. 当選画面モーダル -->
+    <div id="win-modal" class="modal">
         <div class="modal-content" style="text-align: center;">
-            <span class="close-btn" onclick="closeModal('result-modal')">&times;</span>
-            <h2 id="result-phrase" style="color: #ff4757;">おめでとうございます！</h2>
-            <div class="result-card">
-                <h3 id="result-item-name">アイテム名</h3>
-                <img id="result-item-img" src="" alt="当選アイテム画像" style="display:none;">
+            <span class="modal-close" onclick="closeModal('win-modal')">&times;</span>
+            <div class="win-view">
+                <div class="win-comment" id="modal-win-comment">おめでとうございます！</div>
+                <div class="win-img-box">
+                    <img id="modal-win-img" src="" alt="当選アイテム画像">
+                </div>
+                <div class="win-name" id="modal-win-name">アイテム名</div>
+                <p class="save-notice">※画像を長押し、または右クリックで保存できます</p>
             </div>
-            <p style="font-size:12px; color:#747d8c; margin-top:15px;">※画像は長押しまたは右クリックで保存できます</p>
         </div>
     </div>
 
-    <!-- 当選履歴モーダル -->
+    <!-- 2. 当選履歴モーダル -->
     <div id="history-modal" class="modal">
         <div class="modal-content">
-            <span class="close-btn" onclick="closeModal('history-modal')">&times;</span>
-            <h2>当選履歴</h2>
-            <ul id="history-container" class="history-list"></ul>
-        </div>
-    </div>
-
-    <!-- 管理画面認証モーダル -->
-    <div id="admin-auth-modal" class="modal">
-        <div class="modal-content" style="max-width: 350px;">
-            <span class="close-btn" onclick="closeModal('admin-auth-modal')">&times;</span>
-            <h3>管理者認証</h3>
-            <div class="form-group">
-                <label>パスワード入力</label>
-                <input type="password" id="admin-password-input">
+            <span class="modal-close" onclick="closeModal('history-modal')">&times;</span>
+            <h3>当選履歴一覧</h3>
+            <div id="history-empty" style="color:#999; text-align:center; padding: 20px; display:none;">
+                まだ当選履歴はありません。
             </div>
-            <button class="btn-secondary" style="width:100%; margin:0;" onclick="submitAdminAuth()">ログイン</button>
+            <ul class="history-list" id="history-list-container">
+                <!-- JavaScriptで挿入 -->
+            </ul>
         </div>
     </div>
 
-    <!-- 管理画面モーダル -->
+    <!-- 3. 管理画面モーダル -->
     <div id="admin-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="logoutAdmin()">&times;</span>
-            <div class="admin-header-flex">
-                <h2>管理画面 (ログイン中)</h2>
-                <button class="btn-secondary" style="background:#57606f;" onclick="refreshAdminView()">更新</button>
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="modal-close" onclick="closeModal('admin-modal')">&times;</span>
+            <h3>管理画面</h3>
+            
+            <!-- ログインフォーム -->
+            <div id="admin-login-area" class="admin-login-box">
+                <p style="font-size:14px; color:#555;">パスワードを入力してください（管理人2名共通）</p>
+                <div class="form-group" style="max-width:300px; margin: 0 auto 15px auto;">
+                    <input type="password" id="admin-password-input" placeholder="パスワードを入力">
+                </div>
+                <button class="btn-primary" onclick="checkAdminPassword()">ログイン</button>
+                <div id="login-error" style="color:red; font-size:12px; margin-top:10px;"></div>
             </div>
 
-            <!-- アプリ設定 -->
-            <fieldset style="border: 1px solid #ced6e0; border-radius: 6px; padding: 15px; margin-bottom: 20px;">
-                <legend style="font-weight:bold; padding:0 5px;">基本設定・デザイン</legend>
-                <div class="form-group">
-                    <label>タイトル</label>
-                    <input type="text" id="cfg-title" onchange="updateConfig()">
+            <!-- 管理操作コンテンツ -->
+            <div id="admin-main-area" style="display: none;">
+                <!-- 管理者判別情報等の表示用 -->
+                <div style="background:#f9f9f9; padding:8px 12px; border-radius:4px; margin-bottom:15px; font-size:13px; display:flex; justify-content:space-between; align-items:center;">
+                    <span>ステータス: <strong>管理人ログイン中</strong></span>
+                    <button class="btn-sm" onclick="adminLogout()" style="background:#999; color:white; border:none; border-radius:3px; cursor:pointer;">ログアウト</button>
                 </div>
-                <div class="form-group">
-                    <label>説明文</label>
-                    <textarea id="cfg-desc" rows="2" onchange="updateConfig()"></textarea>
+
+                <div class="admin-tabs">
+                    <button class="tab-btn active" onclick="switchAdminTab('tab-items')">アイテム管理</button>
+                    <button class="tab-btn" onclick="switchAdminTab('tab-settings')">制限・セリフ</button>
+                    <button class="tab-btn" onclick="switchAdminTab('tab-design')">デザイン設定</button>
                 </div>
-                <div class="form-group">
-                    <label>当選時のセリフ（共通）</label>
-                    <input type="text" id="cfg-phrase" onchange="updateConfig()">
+
+                <!-- タブ1: アイテム管理 -->
+                <div id="tab-items" class="tab-content active">
+                    <h4>新しいアイテムの追加</h4>
+                    <div class="form-group">
+                        <label>アイテム名称</label>
+                        <input type="text" id="new-item-name" placeholder="例: 特賞 A商品">
+                    </div>
+                    <div class="form-group">
+                        <label>個数 (1〜100)</label>
+                        <input type="number" id="new-item-count" min="1" max="100" value="10">
+                    </div>
+                    <div class="form-group">
+                        <label>アイテム画像</label>
+                        <input type="file" id="new-item-file" accept="image/*">
+                    </div>
+                    <button class="btn-primary" onclick="addNewItem()">アイテムを追加</button>
+
+                    <h4 style="margin-top:25px;">登録中のアイテム一覧</h4>
+                    <div class="item-list-admin" id="admin-items-container">
+                        <!-- JavaScriptで動的生成 -->
+                    </div>
                 </div>
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+
+                <!-- タブ2: 制限・セリフ設定 -->
+                <div id="tab-settings" class="tab-content">
+                    <div class="form-group">
+                        <label>1日にクジ引きできる回数上限</label>
+                        <input type="number" id="setting-max-draws" min="1" value="3">
+                    </div>
+                    <div class="form-group">
+                        <label>当選時のセリフ（一律共通）</label>
+                        <input type="text" id="setting-win-comment" value="おめでとうございます！大当りです！">
+                    </div>
+                    <button class="btn-primary" onclick="saveSettings()">設定を保存</button>
+                    
+                    <hr style="border:0; border-top:1px solid #eee; margin:20px 0;">
+                    <h4>回数の手動リセット</h4>
+                    <p style="font-size:12px; color:#666;">※通常は毎日深夜0時に自動でリセットされますが、今すぐ全員分の本日プレイ回数をリセット（全回復）できます。</p>
+                    <button class="btn-danger" style="padding:8px 15px; font-weight:bold; cursor:pointer;" onclick="resetAllUsersDrawCount()">今すぐ本日のプレイ回数をリセット</button>
+                </div>
+
+                <!-- タブ3: デザイン設定 -->
+                <div id="tab-design" class="tab-content">
+                    <div class="form-group">
+                        <label>タイトル文字列</label>
+                        <input type="text" id="design-title-text">
+                    </div>
+                    <div class="form-group">
+                        <label>説明文テキスト</label>
+                        <textarea id="design-desc-text" rows="2"></textarea>
+                    </div>
                     <div class="form-group">
                         <label>背景色</label>
-                        <input type="color" id="cfg-bg-color" onchange="updateConfig()">
+                        <input type="color" id="design-bg-color">
                     </div>
                     <div class="form-group">
-                        <label>背景画像URL</label>
-                        <input type="text" id="cfg-bg-image" onchange="updateConfig()" placeholder="https://example.com/image.jpg">
+                        <label>文字色（全体）</label>
+                        <input type="color" id="design-text-color">
                     </div>
                     <div class="form-group">
-                        <label>タイトル文字色</label>
-                        <input type="color" id="cfg-title-color" onchange="updateConfig()">
+                        <label>クジ引きボタンの色</label>
+                        <input type="color" id="design-btn-color">
                     </div>
                     <div class="form-group">
-                        <label>本文文字色</label>
-                        <input type="color" id="cfg-text-color" onchange="updateConfig()">
+                        <label>背景画像URL（任意）</label>
+                        <input type="text" id="design-bg-image-url" placeholder="https://example.com/image.jpg">
                     </div>
-                    <div class="form-group" style="grid-column: span 2;">
-                        <label>クジ引きボタン色</label>
-                        <input type="color" id="cfg-btn-color" onchange="updateConfig()">
+                    <div class="form-group">
+                        <label>追加カスタムCSS（上級者向け）</label>
+                        <textarea id="design-custom-css" rows="4" placeholder=".kuji-draw-button { border: 3px solid gold; }"></textarea>
                     </div>
+                    <button class="btn-primary" onclick="saveDesignSettings()">デザインを保存・適用</button>
                 </div>
-                <div class="form-group">
-                    <label>カスタムCSS</label>
-                    <textarea id="cfg-css" rows="3" onchange="updateConfig()" placeholder="body { filter: grayscale(10%); }"></textarea>
-                </div>
-            </fieldset>
 
-            <!-- 回数制限設定 -->
-            <fieldset style="border: 1px solid #ced6e0; border-radius: 6px; padding: 15px; margin-bottom: 20px;">
-                <legend style="font-weight:bold; padding:0 5px;">プレイ制限設定</legend>
-                <div class="form-group">
-                    <label>1日にできる回数</label>
-                    <input type="number" id="cfg-max-draws" min="1" onchange="updateConfig()">
-                </div>
-                <button class="btn-secondary" style="background:#ffa502; width:100%; margin:0;" onclick="resetUserDraws()">ユーザーの残り回数を今すぐリセット</button>
-            </fieldset>
-
-            <!-- アイテム追加 -->
-            <fieldset style="border: 1px solid #ced6e0; border-radius: 6px; padding: 15px; margin-bottom: 20px;">
-                <legend style="font-weight:bold; padding:0 5px;">アイテムの追加</legend>
-                <div class="form-group">
-                    <label>アイテム名称</label>
-                    <input type="text" id="new-item-name">
-                </div>
-                <div class="form-group">
-                    <label>個数 (1〜100)</label>
-                    <input type="number" id="new-item-stock" min="1" max="100" value="1">
-                </div>
-                <div class="form-group">
-                    <label>画像アップロード (Base64形式で保存されます)</label>
-                    <input type="file" id="new-item-file" accept="image/*">
-                </div>
-                <button class="btn-secondary" style="width:100%; margin:0;" onclick="addNewItem()">アイテムを追加する</button>
-            </fieldset>
-
-            <!-- アイテム一覧管理 -->
-            <h3>登録アイテム一覧</h3>
-            <div id="admin-item-list" class="item-list"></div>
-
-            <!-- 当選履歴（管理用・復元可能） -->
-            <h3 style="margin-top:25px;">当選履歴一覧（履歴からアイテムを再追加可能）</h3>
-            <div id="admin-history-list" class="item-list"></div>
+            </div>
         </div>
     </div>
 
-    <style id="custom-css-runtime"></style>
-
     <script>
-        // ハッシュ化されたパスワード（days）。ソースを見ても生パスワードは分からない。
-        const ENCRYPTED_HASH = "61633519"; 
-        function simpleHash(str) {
-            let hash = 0;
-            for (let i = 0; i < str.length; i++) {
-                hash = (hash << 5) - hash + str.charCodeAt(i);
-                hash |= 0;
-            }
-            return hash.toString();
-        }
-
-        // 初期データ（コードから直接複数追加可能）
+        // --- コードから直接アイテムを複数追加・初期設定できる配列 ---
+        // まだブラウザの保存データがない初期状態のときのみ、これが自動的に読み込まれます。
         const INITIAL_ITEMS = [
-            { id: "init_1", name: "特賞：豪華お肉セット", stock: 5, image: "" },
-            { id: "init_2", name: "一等：特製ぬいぐるみ", stock: 10, image: "" },
-            { id: "init_3", name: "二等：オリジナル缶バッジ", stock: 30, image: "" },
-            { id: "init_4", name: "参加賞：特製ステッカー", stock: 100, image: "" }
+            {
+                id: "init-1",
+                name: "特賞：プレミアムギフトカード",
+                count: 5,
+                image: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><rect width='100' height='100' fill='gold'/><text x='50%' y='55%' font-size='14' font-weight='bold' text-anchor='middle' fill='white'>SPECIAL</text></svg>"
+            },
+            {
+                id: "init-2",
+                name: "A賞：こだわりのスイーツセット",
+                count: 15,
+                image: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><rect width='100' height='100' fill='coral'/><text x='50%' y='55%' font-size='16' font-weight='bold' text-anchor='middle' fill='white'>A AWARD</text></svg>"
+            },
+            {
+                id: "init-3",
+                name: "B賞：オリジナル限定ステッカー",
+                count: 50,
+                image: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><rect width='100' height='100' fill='deepskyblue'/><text x='50%' y='55%' font-size='16' font-weight='bold' text-anchor='middle' fill='white'>B AWARD</text></svg>"
+            }
         ];
 
-        // 状態保持
+        // --- パスワード照合システム（「days」のハッシュ値） ---
+        // 文字列「days」は、この単純ハッシュ関数で計算すると 3076183 になります。
+        const TARGET_HASH = 3076183;
+        function getHashCode(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = (hash * 32) - hash + str.charCodeAt(i);
+                hash |= 0; // 32ビット整数に強制
+            }
+            return hash;
+        }
+
+        // アプリの状態データオブジェクト
         let state = {
-            config: {
-                title: "お楽しみクジ引き",
-                desc: "本日のクジ引きに挑戦しよう！",
-                phrase: "おめでとうございます！",
-                bgColor: "#f7f9fa",
-                bgImage: "",
-                titleColor: "#333333",
-                textColor: "#4a4a4a",
-                btnColor: "#ff4757",
-                customCss: "",
-                maxDraws: 3
-            },
             items: [],
             history: [],
-            userDrawCount: 0,
-            lastDrawDate: ""
+            settings: {
+                maxDraws: 3,
+                winComment: "おめでとうございます！大当りです！"
+            },
+            design: {
+                title: "豪華クジ引き大会",
+                desc: "ボタンを押してクジを引こう！何が当たるかはお楽しみ。1日3回までチャレンジできます。",
+                bgColor: "#f4f7f6",
+                textColor: "#333333",
+                btnColor: "#ff4757",
+                bgImageUrl: ""
+            },
+            userDraws: {
+                count: 0,
+                lastDate: ""
+            }
         };
 
-        // ローカルストレージから読み込み
-        function loadStorage() {
-            const saved = localStorage.getItem('kuji_app_state');
-            if (saved) {
-                state = JSON.parse(saved);
+        // アプリ起動時の初期化
+        window.addEventListener('DOMContentLoaded', () => {
+            loadStateFromLocalStorage();
+            checkMidnightReset();
+            applyDesignStyles();
+            renderMainScreen();
+            
+            // 重要: セッションに「ログイン済み」の印があれば、リロードされても管理画面を自動で開く
+            if (sessionStorage.getItem('admin_logged_in') === 'true') {
+                showAdminInterface();
+                openAdminModal();
+            }
+        });
+
+        // データのロード
+        function loadStateFromLocalStorage() {
+            // アイテム
+            const savedItems = localStorage.getItem('kuji_items');
+            if (savedItems) {
+                state.items = JSON.parse(savedItems);
             } else {
                 state.items = [...INITIAL_ITEMS];
-                saveStorage();
+                saveItemsToStorage();
             }
-            checkMidnightReset();
+
+            // 履歴
+            const savedHistory = localStorage.getItem('kuji_history');
+            if (savedHistory) state.history = JSON.parse(savedHistory);
+
+            // 設定
+            const savedSettings = localStorage.getItem('kuji_settings');
+            if (savedSettings) state.settings = JSON.parse(savedSettings);
+
+            // デザイン
+            const savedDesign = localStorage.getItem('kuji_design');
+            if (savedDesign) state.design = JSON.parse(savedDesign);
+
+            // ユーザー利用状況
+            const savedUserDraws = localStorage.getItem('kuji_user_draws');
+            if (savedUserDraws) state.userDraws = JSON.parse(savedUserDraws);
         }
 
-        function saveStorage() {
-            localStorage.setItem('kuji_app_state', JSON.stringify(state));
-        }
+        function saveItemsToStorage() { localStorage.setItem('kuji_items', JSON.stringify(state.items)); }
+        function saveHistoryToStorage() { localStorage.setItem('kuji_history', JSON.stringify(state.history)); }
+        function saveSettingsToStorage() { localStorage.setItem('kuji_settings', JSON.stringify(state.settings)); }
+        function saveDesignToStorage() { localStorage.setItem('kuji_design', JSON.stringify(state.design)); }
+        function saveUserDrawsToStorage() { localStorage.setItem('kuji_user_draws', JSON.stringify(state.userDraws)); }
 
-        // 深夜0時のリセット判定
+        // 深夜0時の自動リセット判定
         function checkMidnightReset() {
             const todayStr = new Date().toLocaleDateString();
-            if (state.lastDrawDate !== todayStr) {
-                state.userDrawCount = 0;
-                state.lastDrawDate = todayStr;
-                // アイテムの在庫数も深夜0時に自動更新（初期設定値にリセットされるか、運用に合わせて保持）
-                saveStorage();
+            if (state.userDraws.lastDate !== todayStr) {
+                state.userDraws.count = 0;
+                state.userDraws.lastDate = todayStr;
+                saveUserDrawsToStorage();
             }
         }
 
-        // デザイン・ビューの反映
-        function applyStyles() {
-            const root = document.documentElement.style;
-            root.setProperty('--bg-color', state.config.bgColor);
-            root.setProperty('--bg-image', state.config.bgImage ? `url(${state.config.bgImage})` : 'none');
-            root.setProperty('--title-color', state.config.titleColor);
-            root.setProperty('--text-color', state.config.textColor);
-            root.setProperty('--btn-color', state.config.btnColor);
+        // デザインスタイルを反映する
+        function applyDesignStyles() {
+            document.getElementById('app-title').innerText = state.design.title;
+            document.getElementById('app-desc').innerText = state.design.desc;
 
-            document.getElementById('display-title').innerText = state.config.title;
-            document.getElementById('display-desc').innerText = state.config.desc;
-            document.getElementById('custom-css-runtime').innerHTML = state.config.customCss;
-
-            const remaining = Math.max(0, state.config.maxDraws - state.userDrawCount);
-            document.getElementById('remaining-count').innerText = `本日の残り回数: ${remaining} 回`;
+            const rootStyle = `
+                :root {
+                    --bg-color: ${state.design.bgColor || '#f4f7f6'};
+                    --text-color: ${state.design.textColor || '#333333'};
+                    --btn-color: ${state.design.btnColor || '#ff4757'};
+                    --bg-image: ${state.design.bgImageUrl ? `url('${state.design.bgImageUrl}')` : 'none'};
+                }
+            `;
+            document.getElementById('custom-theme-styles').innerHTML = rootStyle;
             
-            if (remaining <= 0) {
-                document.getElementById('draw-button').disabled = true;
-                document.getElementById('draw-button').innerText = "本日は終了しました";
-            } else {
-                document.getElementById('draw-button').disabled = false;
-                document.getElementById('draw-button').innerText = "クジを引く";
+            if (state.design.customCss) {
+                document.getElementById('admin-custom-css').innerHTML = state.design.customCss;
             }
         }
 
-        // クジ引き処理
-        function drawLottery() {
+        // メイン画面のテキストやボタン状態描画
+        function renderMainScreen() {
             checkMidnightReset();
-            if (state.userDrawCount >= state.config.maxDraws) {
-                alert("本日のクジ引き上限に達しました。");
+            const remain = Math.max(0, state.settings.maxDraws - state.userDraws.count);
+            document.getElementById('draw-count-status').innerText = `本日の残りクジ引き回数: ${remain} / ${state.settings.maxDraws} 回`;
+            
+            const btn = document.getElementById('draw-button');
+            if (remain <= 0) {
+                btn.disabled = true;
+                btn.innerText = "本日は終了しました";
+            } else {
+                btn.disabled = false;
+                btn.innerText = "クジを引く";
+            }
+        }
+
+        // クジを引く実行ロジック
+        function executeDraw() {
+            checkMidnightReset();
+            if (state.userDraws.count >= state.settings.maxDraws) {
+                alert("本日の上限回数に達したため、これ以上クジは引けません。");
                 return;
             }
 
-            // 在庫のあるアイテムをプールに展開
+            // 確率プールを構築 (個数を重みとした抽選)
             let pool = [];
             state.items.forEach(item => {
-                for (let i = 0; i < item.stock; i++) {
+                const count = parseInt(item.count) || 0;
+                for (let i = 0; i < count; i++) {
                     pool.push(item);
                 }
             });
 
             if (pool.length === 0) {
-                alert("現在、当たるアイテムがありません。管理者が追加するまでお待ちください。");
+                alert("現在、クジの中にアイテムが1つも入っていません。管理人に確認してください。");
                 return;
             }
 
-            // 抽選
+            // ランダム抽選
             const randomIndex = Math.floor(Math.random() * pool.length);
-            const winnerItem = pool[randomIndex];
+            const wonItem = pool[randomIndex];
 
-            // 在庫を1減らす
-            const realItem = state.items.find(i => i.id === winnerItem.id);
-            if (realItem) {
-                realItem.stock--;
-                if (realItem.stock <= 0) {
-                    state.items = state.items.filter(i => i.id !== winnerItem.id);
-                }
-            }
+            // 回数カウントアップ
+            state.userDraws.count++;
+            saveUserDrawsToStorage();
+            renderMainScreen();
 
-            // ユーザーカウント進捗
-            state.userDrawCount++;
-            
-            // 履歴に追加
-            const log = {
-                timestamp: new Date().toLocaleString(),
-                name: winnerItem.name,
-                image: winnerItem.image
+            // 履歴に保存
+            const historyEntry = {
+                id: 'hist-' + Date.now(),
+                name: wonItem.name,
+                image: wonItem.image,
+                timestamp: new Date().toLocaleString()
             };
-            state.history.unshift(log);
-            saveStorage();
-            applyStyles();
+            state.history.unshift(historyEntry); // 先頭に追加
+            saveHistoryToStorage();
 
-            // 当選モーダル表示
-            document.getElementById('result-phrase').innerText = state.config.phrase;
-            document.getElementById('result-item-name').innerText = winnerItem.name;
-            const imgEl = document.getElementById('result-item-img');
-            if (winnerItem.image) {
-                imgEl.src = winnerItem.image;
-                imgEl.style.display = 'inline-block';
-            } else {
-                imgEl.style.display = 'none';
-            }
-            openModal('result-card-display'); // 実際は下の関数呼び出し
-            document.getElementById('result-modal').style.display = 'flex';
+            // 当選モーダルを開く
+            document.getElementById('modal-win-comment').innerText = state.settings.winComment;
+            document.getElementById('modal-win-name').innerText = wonItem.name;
+            document.getElementById('modal-win-img').src = wonItem.image || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="%23ccc"/></svg>';
+            
+            openModal('win-modal');
         }
 
-        // モーダル操作
+        // --- モーダル制御関係 ---
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
         function closeModal(id) {
-            document.getElementById(id).style.display = 'none';
+            document.getElementById(id).classList.remove('active');
         }
+
         function openHistoryModal() {
-            const container = document.getElementById('history-container');
+            const container = document.getElementById('history-list-container');
+            const emptyNotice = document.getElementById('history-empty');
             container.innerHTML = '';
+
             if (state.history.length === 0) {
-                container.innerHTML = '<li>まだ当選履歴がありません。</li>';
+                emptyNotice.style.display = 'block';
             } else {
-                state.history.forEach(h => {
+                emptyNotice.style.display = 'none';
+                state.history.forEach(hist => {
                     const li = document.createElement('li');
-                    li.innerHTML = `<div><strong>${h.name}</strong><br><small style="color:#747d8c">${h.timestamp}</small></div>`;
-                    if (h.image) {
-                        const img = document.createElement('img');
-                        img.src = h.image;
-                        img.style.width = '40px'; img.style.height = '40px'; img.style.objectFit = 'cover'; img.style.borderRadius = '4px';
-                        li.appendChild(img);
-                    }
+                    li.className = 'history-item';
+                    li.innerHTML = `
+                        <img class="history-thumb" src="${hist.image || ''}" alt="アイテム">
+                        <div class="history-info">
+                            <div class="history-name">${hist.name}</div>
+                            <div class="history-time">${hist.timestamp}</div>
+                        </div>
+                    `;
                     container.appendChild(li);
                 });
             }
-            document.getElementById('history-modal').style.display = 'flex';
+            openModal('history-modal');
         }
 
-        // 管理画面の認証
-        function openAdminAuth() {
-            if (sessionStorage.getItem('admin_logged_in') === 'true') {
-                showAdminModal();
-            } else {
-                document.getElementById('admin-password-input').value = '';
-                document.getElementById('admin-auth-modal').style.display = 'flex';
-            }
-        }
-        function submitAdminAuth() {
-            const input = document.getElementById('admin-password-input').value;
-            if (simpleHash(input) === ENCRYPTED_HASH) {
-                sessionStorage.setItem('admin_logged_in', 'true');
-                closeModal('admin-auth-modal');
-                showAdminModal();
-            } else {
-                alert('パスワードが違います。');
-            }
-        }
-        function logoutAdmin() {
-            sessionStorage.removeItem('admin_logged_in');
-            closeModal('admin-modal');
+        function openAdminModal() {
+            // パスワード入力欄を空にする
+            document.getElementById('admin-password-input').value = '';
+            document.getElementById('login-error').innerText = '';
+            openModal('admin-modal');
         }
 
-        // 管理画面の表示と更新
-        function showAdminModal() {
-            document.getElementById('admin-modal').style.display = 'flex';
+        // --- 管理画面ログインロジック ---
+        function checkAdminPassword() {
+            const inputField = document.getElementById('admin-password-input');
+            const password = inputField.value;
             
-            // フォーム値の同期
-            document.getElementById('cfg-title').value = state.config.title;
-            document.getElementById('cfg-desc').value = state.config.desc;
-            document.getElementById('cfg-phrase').value = state.config.phrase;
-            document.getElementById('cfg-bg-color').value = state.config.bgColor;
-            document.getElementById('cfg-bg-image').value = state.config.bgImage;
-            document.getElementById('cfg-title-color').value = state.config.titleColor;
-            document.getElementById('cfg-text-color').value = state.config.textColor;
-            document.getElementById('cfg-btn-color').value = state.config.btnColor;
-            document.getElementById('cfg-css').value = state.config.customCss;
-            document.getElementById('cfg-max-draws').value = state.config.maxDraws;
+            if (getHashCode(password) === TARGET_HASH) {
+                // 認証成功: セッションストレージに保存
+                sessionStorage.setItem('admin_logged_in', 'true');
+                showAdminInterface();
+            } else {
+                document.getElementById('login-error').innerText = "パスワードが正しくありません。";
+            }
+        }
+
+        function showAdminInterface() {
+            document.getElementById('admin-login-area').style.display = 'none';
+            document.getElementById('admin-main-area').style.display = 'block';
+            
+            // フォームの値を現在の状態で初期化
+            document.getElementById('setting-max-draws').value = state.settings.maxDraws;
+            document.getElementById('setting-win-comment').value = state.settings.winComment;
+            
+            document.getElementById('design-title-text').value = state.design.title;
+            document.getElementById('design-desc-text').value = state.design.desc;
+            document.getElementById('design-bg-color').value = state.design.bgColor || '#f4f7f6';
+            document.getElementById('design-text-color').value = state.design.textColor || '#333333';
+            document.getElementById('design-btn-color').value = state.design.btnColor || '#ff4757';
+            document.getElementById('design-bg-image-url').value = state.design.bgImageUrl || '';
+            document.getElementById('design-custom-css').value = state.design.customCss || '';
 
             renderAdminItems();
         }
 
-        function refreshAdminView() {
-            loadStorage();
-            applyStyles();
-            showAdminModal();
+        function adminLogout() {
+            sessionStorage.removeItem('admin_logged_in');
+            document.getElementById('admin-login-area').style.display = 'block';
+            document.getElementById('admin-main-area').style.display = 'none';
         }
 
-        function updateConfig() {
-            state.config.title = document.getElementById('cfg-title').value;
-            state.config.desc = document.getElementById('cfg-desc').value;
-            state.config.phrase = document.getElementById('cfg-phrase').value;
-            state.config.bgColor = document.getElementById('cfg-bg-color').value;
-            state.config.bgImage = document.getElementById('cfg-bg-image').value;
-            state.config.titleColor = document.getElementById('cfg-title-color').value;
-            state.config.textColor = document.getElementById('cfg-text-color').value;
-            state.config.btnColor = document.getElementById('cfg-btn-color').value;
-            state.config.customCss = document.getElementById('cfg-css').value;
-            state.config.maxDraws = parseInt(document.getElementById('cfg-max-draws').value) || 3;
+        function switchAdminTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             
-            saveStorage();
-            applyStyles();
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
         }
 
-        function resetUserDraws() {
-            state.userDrawCount = 0;
-            saveStorage();
-            applyStyles();
-            alert("ユーザーの残り回数をリセットしました。");
-        }
-
+        // --- 管理画面：アイテム編集ロジック ---
         function renderAdminItems() {
-            const listContainer = document.getElementById('admin-item-list');
-            listContainer.innerHTML = '';
-            
-            state.items.forEach(item => {
+            const container = document.getElementById('admin-items-container');
+            container.innerHTML = '';
+
+            state.items.forEach((item, index) => {
                 const row = document.createElement('div');
                 row.className = 'item-row';
-                
-                const infoDiv = document.createElement('div');
-                infoDiv.style.display = 'flex'; infoDiv.style.alignItems = 'center';
-                if (item.image) {
-                    const img = document.createElement('img');
-                    img.src = item.image;
-                    infoDiv.appendChild(img);
-                }
-                
-                const textSpan = document.createElement('span');
-                textSpan.innerHTML = `<input type="text" value="${item.name}" onchange="editItemName('${item.id}', this.value)" style="width:180px; display:inline-block; margin-right:10px;"> 在庫: <input type="number" value="${item.stock}" min="1" max="100" onchange="editItemStock('${item.id}', this.value)" style="width:50px; display:inline-block;">`;
-                infoDiv.appendChild(textSpan);
-
-                const delBtn = document.createElement('button');
-                delBtn.innerText = '削除';
-                delBtn.className = 'btn-secondary';
-                delBtn.style.background = '#ff4757';
-                delBtn.onclick = () => deleteItem(item.id);
-
-                row.appendChild(infoDiv);
-                row.appendChild(delBtn);
-                listContainer.appendChild(row);
+                row.innerHTML = `
+                    <img class="item-thumb" src="${item.image || ''}">
+                    <div style="flex:1;">
+                        <input type="text" value="${item.name}" onchange="updateItemName(${index}, this.value)" style="width:70%; padding:4px; font-size:13px; margin-bottom:3px;">
+                        <div style="font-size:12px; color:#666;">
+                            個数: <input type="number" min="1" max="100" value="${item.count}" onchange="updateItemCount(${index}, this.value)" style="width:50px; padding:2px;">
+                        </div>
+                    </div>
+                    <button class="btn-sm btn-danger" onclick="deleteItem(${index})">削除</button>
+                `;
+                container.appendChild(row);
             });
-
-            // 履歴から追加セクションの描画
-            const histContainer = document.getElementById('admin-history-list');
-            histContainer.innerHTML = '';
-            if (state.history.length === 0) {
-                histContainer.innerHTML = '<p style="font-size:12px; color:#747d8c;">履歴がありません</p>';
-            } else {
-                // 重複排除して履歴アイテムをリストアップ
-                const uniqueHistory = [];
-                const map = new Map();
-                for (const item of state.history) {
-                    if(!map.has(item.name)){
-                        map.set(item.name, true);
-                        uniqueHistory.push(item);
-                    }
-                }
-
-                uniqueHistory.forEach(h => {
-                    const row = document.createElement('div');
-                    row.className = 'item-row';
-                    row.innerHTML = `<div><strong>${h.name}</strong></div>`;
-                    const addBtn = document.createElement('button');
-                    addBtn.innerText = 'このアイテムを再追加(1個)';
-                    addBtn.className = 'btn-secondary';
-                    addBtn.onclick = () => {
-                        const id = 'hist_' + Date.now();
-                        state.items.push({ id, name: h.name, stock: 1, image: h.image || "" });
-                        saveStorage();
-                        renderAdminItems();
-                    };
-                    row.appendChild(addBtn);
-                    histContainer.appendChild(row);
-                });
-            }
         }
 
         function addNewItem() {
-            const name = document.getElementById('new-item-name').value;
-            const stock = parseInt(document.getElementById('new-item-stock').value) || 1;
+            const name = document.getElementById('new-item-name').value.trim();
+            const count = parseInt(document.getElementById('new-item-count').value) || 1;
             const fileInput = document.getElementById('new-item-file');
 
             if (!name) {
-                alert('アイテム名を入力してください。');
+                alert("アイテム名を入力してください。");
                 return;
             }
 
-            const id = 'item_' + Date.now();
+            const addItem = (imgData) => {
+                state.items.push({
+                    id: 'item-' + Date.now(),
+                    name: name,
+                    count: Math.min(100, Math.max(1, count)),
+                    image: imgData || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="%23eee"/><text x="50%" y="55%" text-anchor="middle" fill="%23aaa">No Img</text></svg>'
+                });
+                saveItemsToStorage();
+                renderAdminItems();
+
+                // フォームクリア
+                document.getElementById('new-item-name').value = '';
+                document.getElementById('new-item-count').value = '10';
+                fileInput.value = '';
+                alert("アイテムを追加しました。");
+            };
 
             if (fileInput.files && fileInput.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    state.items.push({ id, name, stock, image: e.target.result });
-                    saveStorage();
-                    renderAdminItems();
-                    document.getElementById('new-item-name').value = '';
-                    fileInput.value = '';
+                    addItem(e.target.result);
                 };
                 reader.readAsDataURL(fileInput.files[0]);
             } else {
-                state.items.push({ id, name, stock, image: "" });
-                saveStorage();
+                addItem(null);
+            }
+        }
+
+        function updateItemName(index, newName) {
+            if (!newName.trim()) return;
+            state.items[index].name = newName.trim();
+            saveItemsToStorage();
+        }
+
+        function updateItemCount(index, newCount) {
+            let val = parseInt(newCount) || 1;
+            val = Math.min(100, Math.max(1, val));
+            state.items[index].count = val;
+            saveItemsToStorage();
+        }
+
+        function deleteItem(index) {
+            if (confirm("このアイテムを削除してもよろしいですか？")) {
+                state.items.splice(index, 1);
+                saveItemsToStorage();
                 renderAdminItems();
-                document.getElementById('new-item-name').value = '';
             }
         }
 
-        function editItemName(id, newName) {
-            const item = state.items.find(i => i.id === id);
-            if (item) {
-                item.name = newName;
-                saveStorage();
-            }
-        }
+        // --- 管理画面：その他の設定変更 ---
+        function saveSettings() {
+            const maxDraws = parseInt(document.getElementById('setting-max-draws').value) || 3;
+            const winComment = document.getElementById('setting-win-comment').value.trim();
 
-        function editItemStock(id, newStock) {
-            const item = state.items.find(i => i.id === id);
-            if (item) {
-                item.stock = Math.min(100, Math.max(1, parseInt(newStock) || 1));
-                saveStorage();
-            }
-        }
-
-        function deleteItem(id) {
-            state.items = state.items.filter(i => i.id !== id);
-            saveStorage();
-            renderAdminItems();
-        }
-
-        // 初期起動
-        window.onload = function() {
-            loadStorage();
-            applyStyles();
+            state.settings.maxDraws = maxDraws;
+            state.settings.winComment = winComment || "おめでとうございます！";
             
-            // ページ更新してもセッションが残っていれば自動で管理画面を開き直す（要件対応）
-            if (sessionStorage.getItem('admin_logged_in') === 'true') {
-                showAdminModal();
+            saveSettingsToStorage();
+            renderMainScreen();
+            alert("基本設定を保存しました。");
+        }
+
+        function resetAllUsersDrawCount() {
+            if (confirm("全てのユーザーの本日プレイ回数をリセットしてよろしいですか？")) {
+                state.userDraws.count = 0;
+                saveUserDrawsToStorage();
+                renderMainScreen();
+                alert("回数をリセットしました。");
             }
-        };
+        }
+
+        function saveDesignSettings() {
+            state.design.title = document.getElementById('design-title-text').value;
+            state.design.desc = document.getElementById('design-desc-text').value;
+            state.design.bgColor = document.getElementById('design-bg-color').value;
+            state.design.textColor = document.getElementById('design-text-color').value;
+            state.design.btnColor = document.getElementById('design-btn-color').value;
+            state.design.bgImageUrl = document.getElementById('design-bg-image-url').value.trim();
+            state.design.customCss = document.getElementById('design-custom-css').value;
+
+            saveDesignToStorage();
+            applyDesignStyles();
+            alert("デザイン設定を適用・保存しました。");
+        }
     </script>
 </body>
 </html>
